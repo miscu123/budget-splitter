@@ -100,6 +100,7 @@ Usage:
   budget <type> <amount>    e.g. budget salary 3600
   budget --list             show income types and how each one is split
   budget /help              show this help
+  --no-etfs                 skip the ETF table (shown for types with investments)
 
 Tip: type /help at the menu prompt to see the splits before choosing."""
 
@@ -110,11 +111,11 @@ def choose_plan(plans: dict) -> str:
     def show_menu():
         print("What type of income is it?  (type /help to see how each one is split)")
         for n, key in enumerate(keys, 1):
-            print(f"  {n}) {plans[key]['label']}  ({key})")
+            print(f"  {n}) {plans[key]['label']}")
 
     show_menu()
     while True:
-        choice = input("Choose a number or name: ").strip().lower()
+        choice = input("Choose a number or name: ").strip("﻿ \t\r\n").lower()
         if choice in HELP_WORDS:
             list_plans(plans)
             show_menu()
@@ -161,6 +162,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("amount", nargs="?", help="amount to budget, e.g. 3600")
     parser.add_argument("--list", action="store_true", help="list income types and exit")
     parser.add_argument("-h", "--help", action="store_true", help="show help and exit")
+    parser.add_argument("--no-etfs", action="store_true", help="skip the ETF performance table")
     args = parser.parse_args(argv)
 
     plans = load_plans()
@@ -193,7 +195,20 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(render_table(amount, plans[key]))
+
+    if has_investments(plans[key]) and not args.no_etfs:
+        from etf import render_etf_table
+
+        print("\nLoading ETF data...", end="\r")
+        print(render_etf_table())
     return 0
+
+
+def has_investments(plan: dict) -> bool:
+    """True if any category or sub-category of the plan is about investing."""
+    names = [c["name"] for c in plan["categories"]]
+    names += [s["name"] for c in plan["categories"] for s in c.get("split", [])]
+    return any("invest" in n.lower() for n in names)
 
 
 if __name__ == "__main__":

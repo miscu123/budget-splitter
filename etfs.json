@@ -1,0 +1,15 @@
+{
+  "source": "Yahoo Finance (Xetra listings, prices in EUR)",
+  "etfs": [
+    { "ticker": "SXR8.DE", "name": "iShares Core S&P 500 (Acc)" },
+    { "ticker": "VWCE.DE", "name": "Vanguard FTSE All-World (Acc)" },
+    { "ticker": "EUNL.DE", "name": "iShares Core MSCI World (Acc)" },
+    { "ticker": "IUSQ.DE", "name": "iShares MSCI ACWI (Acc)" },
+    { "ticker": "SXRV.DE", "name": "iShares Nasdaq 100 (Acc)" },
+    { "ticker": "QDVE.DE", "name": "iShares S&P 500 Info Tech (Acc)" },
+    { "ticker": "IS3N.DE", "name": "iShares Core MSCI EM IMI (Acc)" },
+    { "ticker": "EUNK.DE", "name": "iShares Core MSCI Europe (Acc)" },
+    { "ticker": "EXSA.DE", "name": "iShares STOXX Europe 600 (Dist)" },
+    { "ticker": "IUSN.DE", "name": "iShares MSCI World Small Cap (Acc)" }
+  ]
+}
