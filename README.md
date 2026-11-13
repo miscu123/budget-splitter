@@ -36,7 +36,13 @@ Monthly salary: 3,600.00
 +-----------------------+--------+----------+
 ```
 
-List the available income types:
+Show help: usage plus every income type with the % each category gets:
+
+```bash
+python budget.py /help
+```
+
+`help`, `-h` and `--help` work too, and you can type `/help` at the interactive menu prompt. To see only the income types and their splits:
 
 ```bash
 python budget.py --list

@@ -92,18 +92,38 @@ def parse_amount(text: str) -> Decimal:
     return value
 
 
+HELP_WORDS = {"/help", "help", "/h", "/?", "?"}
+
+USAGE = """\
+Usage:
+  budget                    pick an income type from a menu, then enter the amount
+  budget <type> <amount>    e.g. budget salary 3600
+  budget --list             show income types and how each one is split
+  budget /help              show this help
+
+Tip: type /help at the menu prompt to see the splits before choosing."""
+
+
 def choose_plan(plans: dict) -> str:
     keys = list(plans)
-    print("What type of income is it?")
-    for n, key in enumerate(keys, 1):
-        print(f"  {n}) {plans[key]['label']}  ({key})")
+
+    def show_menu():
+        print("What type of income is it?  (type /help to see how each one is split)")
+        for n, key in enumerate(keys, 1):
+            print(f"  {n}) {plans[key]['label']}  ({key})")
+
+    show_menu()
     while True:
         choice = input("Choose a number or name: ").strip().lower()
+        if choice in HELP_WORDS:
+            list_plans(plans)
+            show_menu()
+            continue
         if choice.isdigit() and 1 <= int(choice) <= len(keys):
             return keys[int(choice) - 1]
         if choice in plans:
             return choice
-        print("  Not a valid option, try again.")
+        print("  Not a valid option, try again (or type /help).")
 
 
 def ask_amount() -> Decimal:
@@ -115,19 +135,39 @@ def ask_amount() -> Decimal:
 
 
 def list_plans(plans: dict) -> None:
-    for key, plan in plans.items():
-        print(f"{key:<12} {plan['label']}")
-        print(f"{'':<12} {plan.get('description', '')}")
+    """Print every income type with the % each category gets."""
+    print("\nIncome types and how they are split:")
+    for n, (key, plan) in enumerate(plans.items(), 1):
+        rows = build_rows(Decimal(100), plan)
+        width = max(len(name) for name, _, _ in rows)
+        print(f"\n  {n}) {plan['label']}  ({key})")
+        for name, pct, _ in rows:
+            print(f"       {name.ljust(width)}  {pct:5.1f}%")
+    print()
+
+
+def print_help(plans: dict) -> None:
+    print(USAGE)
+    list_plans(plans)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Split an income amount into your budget categories.")
+    parser = argparse.ArgumentParser(
+        prog="budget",
+        description="Split an income amount into your budget categories.",
+        add_help=False,
+    )
     parser.add_argument("type", nargs="?", help="income type (see --list)")
     parser.add_argument("amount", nargs="?", help="amount to budget, e.g. 3600")
     parser.add_argument("--list", action="store_true", help="list income types and exit")
+    parser.add_argument("-h", "--help", action="store_true", help="show help and exit")
     args = parser.parse_args(argv)
 
     plans = load_plans()
+
+    if args.help or (args.type and args.type.lower() in HELP_WORDS):
+        print_help(plans)
+        return 0
 
     if args.list:
         list_plans(plans)
