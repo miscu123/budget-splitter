@@ -1,0 +1,96 @@
+{
+  "plans": {
+    "salary": {
+      "label": "Monthly salary",
+      "description": "Fixed monthly split (weights taken from a 3600 salary).",
+      "categories": [
+        { "name": "Rent", "weight": 900 },
+        { "name": "Utilities", "weight": 400 },
+        { "name": "Car fuel", "weight": 500 },
+        { "name": "Free spendings", "weight": 600 },
+        { "name": "Wishlist", "weight": 500 },
+        {
+          "name": "Savings / Investments",
+          "weight": 700,
+          "split": [
+            { "name": "Savings", "weight": 550 },
+            { "name": "Investments", "weight": 150 }
+          ]
+        }
+      ]
+    },
+    "freelancing": {
+      "label": "Freelancing",
+      "description": "20% taxes, 30% savings/investments, 30% wishlist, 20% free spendings.",
+      "categories": [
+        { "name": "Taxes", "weight": 20 },
+        {
+          "name": "Savings / Investments",
+          "weight": 30,
+          "split": [
+            { "name": "Savings", "weight": 550 },
+            { "name": "Investments", "weight": 150 }
+          ]
+        },
+        { "name": "Wishlist", "weight": 30 },
+        { "name": "Free spendings", "weight": 20 }
+      ]
+    },
+    "gift": {
+      "label": "Gifted money",
+      "description": "Mostly saved, with a treat: 50% savings/investments, 30% wishlist, 20% free spendings.",
+      "categories": [
+        {
+          "name": "Savings / Investments",
+          "weight": 50,
+          "split": [
+            { "name": "Savings", "weight": 550 },
+            { "name": "Investments", "weight": 150 }
+          ]
+        },
+        { "name": "Wishlist", "weight": 30 },
+        { "name": "Free spendings", "weight": 20 }
+      ]
+    },
+    "bonus": {
+      "label": "Work bonus",
+      "description": "Already-taxed bonus: 60% savings/investments, 20% wishlist, 20% free spendings.",
+      "categories": [
+        {
+          "name": "Savings / Investments",
+          "weight": 60,
+          "split": [
+            { "name": "Savings", "weight": 50 },
+            { "name": "Investments", "weight": 50 }
+          ]
+        },
+        { "name": "Wishlist", "weight": 20 },
+        { "name": "Free spendings", "weight": 20 }
+      ]
+    },
+    "refund": {
+      "label": "Refund / cashback / tax return",
+      "description": "Money you already spent once coming back: 70% savings, 30% free spendings.",
+      "categories": [
+        { "name": "Savings", "weight": 70 },
+        { "name": "Free spendings", "weight": 30 }
+      ]
+    },
+    "other": {
+      "label": "Other",
+      "description": "Catch-all for anything else: 40% savings/investments, 30% wishlist, 30% free spendings.",
+      "categories": [
+        {
+          "name": "Savings / Investments",
+          "weight": 40,
+          "split": [
+            { "name": "Savings", "weight": 550 },
+            { "name": "Investments", "weight": 150 }
+          ]
+        },
+        { "name": "Wishlist", "weight": 30 },
+        { "name": "Free spendings", "weight": 30 }
+      ]
+    }
+  }
+}
