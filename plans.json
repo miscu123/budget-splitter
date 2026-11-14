@@ -1,20 +1,46 @@
 {
+  "default_currency": "RON",
   "plans": {
     "salary": {
       "label": "Monthly salary",
-      "description": "Fixed monthly split (weights taken from a 3600 salary).",
+      "description": "Fixed monthly split (weights are RON amounts from a 3600 RON salary).",
       "categories": [
-        { "name": "Rent", "weight": 900 },
-        { "name": "Utilities", "weight": 400 },
-        { "name": "Car fuel", "weight": 500 },
-        { "name": "Free spendings", "weight": 600 },
-        { "name": "Wishlist", "weight": 500 },
+        {
+          "name": "Rent",
+          "weight": 900
+        },
+        {
+          "name": "Utilities",
+          "weight": 400
+        },
+        {
+          "name": "Subscriptions",
+          "weight": 150
+        },
+        {
+          "name": "Car fuel",
+          "weight": 500
+        },
+        {
+          "name": "Free spendings",
+          "weight": 450
+        },
+        {
+          "name": "Wishlist",
+          "weight": 500
+        },
         {
           "name": "Savings / Investments",
           "weight": 700,
           "split": [
-            { "name": "Savings", "weight": 550 },
-            { "name": "Investments", "weight": 150 }
+            {
+              "name": "Savings",
+              "weight": 550
+            },
+            {
+              "name": "Investments",
+              "weight": 150
+            }
           ]
         }
       ]
@@ -23,17 +49,32 @@
       "label": "Freelancing",
       "description": "20% taxes, 30% savings/investments, 30% wishlist, 20% free spendings.",
       "categories": [
-        { "name": "Taxes", "weight": 20 },
+        {
+          "name": "Taxes",
+          "weight": 20
+        },
         {
           "name": "Savings / Investments",
           "weight": 30,
           "split": [
-            { "name": "Savings", "weight": 550 },
-            { "name": "Investments", "weight": 150 }
+            {
+              "name": "Savings",
+              "weight": 550
+            },
+            {
+              "name": "Investments",
+              "weight": 150
+            }
           ]
         },
-        { "name": "Wishlist", "weight": 30 },
-        { "name": "Free spendings", "weight": 20 }
+        {
+          "name": "Wishlist",
+          "weight": 30
+        },
+        {
+          "name": "Free spendings",
+          "weight": 20
+        }
       ]
     },
     "gift": {
@@ -44,12 +85,24 @@
           "name": "Savings / Investments",
           "weight": 50,
           "split": [
-            { "name": "Savings", "weight": 550 },
-            { "name": "Investments", "weight": 150 }
+            {
+              "name": "Savings",
+              "weight": 550
+            },
+            {
+              "name": "Investments",
+              "weight": 150
+            }
           ]
         },
-        { "name": "Wishlist", "weight": 30 },
-        { "name": "Free spendings", "weight": 20 }
+        {
+          "name": "Wishlist",
+          "weight": 30
+        },
+        {
+          "name": "Free spendings",
+          "weight": 20
+        }
       ]
     },
     "bonus": {
@@ -60,20 +113,38 @@
           "name": "Savings / Investments",
           "weight": 60,
           "split": [
-            { "name": "Savings", "weight": 50 },
-            { "name": "Investments", "weight": 50 }
+            {
+              "name": "Savings",
+              "weight": 50
+            },
+            {
+              "name": "Investments",
+              "weight": 50
+            }
           ]
         },
-        { "name": "Wishlist", "weight": 20 },
-        { "name": "Free spendings", "weight": 20 }
+        {
+          "name": "Wishlist",
+          "weight": 20
+        },
+        {
+          "name": "Free spendings",
+          "weight": 20
+        }
       ]
     },
     "refund": {
       "label": "Refund / cashback / tax return",
       "description": "Money you already spent once coming back: 70% savings, 30% free spendings.",
       "categories": [
-        { "name": "Savings", "weight": 70 },
-        { "name": "Free spendings", "weight": 30 }
+        {
+          "name": "Savings",
+          "weight": 70
+        },
+        {
+          "name": "Free spendings",
+          "weight": 30
+        }
       ]
     },
     "other": {
@@ -84,12 +155,24 @@
           "name": "Savings / Investments",
           "weight": 40,
           "split": [
-            { "name": "Savings", "weight": 550 },
-            { "name": "Investments", "weight": 150 }
+            {
+              "name": "Savings",
+              "weight": 550
+            },
+            {
+              "name": "Investments",
+              "weight": 150
+            }
           ]
         },
-        { "name": "Wishlist", "weight": 30 },
-        { "name": "Free spendings", "weight": 30 }
+        {
+          "name": "Wishlist",
+          "weight": 30
+        },
+        {
+          "name": "Free spendings",
+          "weight": 30
+        }
       ]
     }
   }
