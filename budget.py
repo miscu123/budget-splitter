@@ -130,7 +130,7 @@ def ask_fixed_costs(
             continue
         noun = name.lower()
         while True:
-            yn = input(f"Do you pay for {noun}? [Y/n]: ").strip("﻿ \t\r\n").lower()
+            yn = ask(f"Do you pay for {noun}? [Y/n]: ").lower()
             if yn in ("", "y", "yes", "n", "no"):
                 break
             print("  Please answer y or n.")
@@ -139,9 +139,9 @@ def ask_fixed_costs(
             continue
         left = amount - sum(fixed.values())
         while True:
-            text = input(
+            text = ask(
                 f"How much do you pay for {noun}? ({currency}, Enter = {fmt_money(defaults[name])}): "
-            ).strip()
+            )
             try:
                 value = defaults[name] if not text else parse_amount(text, allow_zero=True)
             except ValueError as e:
@@ -229,6 +229,25 @@ def parse_amount(text: str, allow_zero: bool = False) -> Decimal:
 HELP_WORDS = {"/help", "help", "/h", "/?", "?"}
 
 TOOL_COMMANDS = {"etfs", "rates"}
+LIST_WORDS = {"/list", "list", "--list"}
+
+# Set in main() so /help typed at any prompt can show the full reference.
+_CONFIG: dict = {}
+
+
+def ask(prompt: str, after_help=None) -> str:
+    """input() that answers /help and /list at any prompt, then asks again."""
+    while True:
+        text = input(prompt).strip("﻿ \t\r\n")
+        word = text.lower()
+        if word in HELP_WORDS:
+            print("\n" + build_help(_CONFIG) + "\n")
+        elif word in LIST_WORDS:
+            list_plans(_CONFIG["plans"])
+        else:
+            return text
+        if after_help:
+            after_help()
 
 
 def build_help(config: dict) -> str:
@@ -270,8 +289,9 @@ def build_help(config: dict) -> str:
         row("", "e.g. budget salary 3600 --rent 1200 --utilities 0 --no-etfs"),
         "",
         "AT THE PROMPTS",
+        row("/help", "Works at any prompt: shows this help, then asks again"),
+        row("/list", "Works at any prompt: shows each income type's % split"),
         row("Income type", f"A number (1-{len(keys)}) or a name, e.g. salary"),
-        row("", "/help shows every split, then the menu again"),
         row("Currency", f"1, 2, 3 or RON, EUR, USD (Enter = {cur})"),
         row("Do you pay for ...?", "y or n (Enter = yes)"),
         row("How much ...?", "The amount (Enter = the plan's usual amount)"),
@@ -298,17 +318,13 @@ def choose_plan(plans: dict) -> str:
     keys = list(plans)
 
     def show_menu():
-        print("What type of income is it?  (type /help to see how each one is split)")
+        print("What type of income is it?  (type /help for all commands, /list for the splits)")
         for n, key in enumerate(keys, 1):
             print(f"  {n}) {plans[key]['label']}")
 
     show_menu()
     while True:
-        choice = input("Choose a number or name: ").strip("﻿ \t\r\n").lower()
-        if choice in HELP_WORDS:
-            list_plans(plans)
-            show_menu()
-            continue
+        choice = ask("Choose a number or name: ", after_help=show_menu).lower()
         if choice.isdigit() and 1 <= int(choice) <= len(keys):
             return keys[int(choice) - 1]
         if choice in plans:
@@ -326,7 +342,7 @@ def parse_currency(text: str) -> str:
 def ask_currency(default: str) -> str:
     options = "  ".join(f"{n}) {c}" for n, c in enumerate(CURRENCIES, 1))
     while True:
-        choice = input(f"Currency of the amount? {options}  [Enter = {default}]: ").strip()
+        choice = ask(f"Currency of the amount? {options}  [Enter = {default}]: ")
         if not choice:
             return default
         if choice.isdigit() and 1 <= int(choice) <= len(CURRENCIES):
@@ -340,7 +356,7 @@ def ask_currency(default: str) -> str:
 def ask_amount(currency: str) -> Decimal:
     while True:
         try:
-            return parse_amount(input(f"Amount to budget ({currency}): "))
+            return parse_amount(ask(f"Amount to budget ({currency}): "))
         except ValueError as e:
             print(f"  {e}, try again.")
 
@@ -363,6 +379,7 @@ def print_help(config: dict) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     config = load_config()
+    _CONFIG.update(config)
     plans = config["plans"]
     default_currency = config.get("default_currency", "RON").upper()
 
