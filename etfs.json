@@ -1,15 +1,54 @@
 {
   "source": "Yahoo Finance (Xetra listings, prices in EUR)",
+  "show_top": 10,
+  "show_bottom": 3,
   "etfs": [
-    { "ticker": "SXR8.DE", "name": "iShares Core S&P 500 (Acc)" },
-    { "ticker": "VWCE.DE", "name": "Vanguard FTSE All-World (Acc)" },
-    { "ticker": "EUNL.DE", "name": "iShares Core MSCI World (Acc)" },
-    { "ticker": "IUSQ.DE", "name": "iShares MSCI ACWI (Acc)" },
-    { "ticker": "SXRV.DE", "name": "iShares Nasdaq 100 (Acc)" },
-    { "ticker": "QDVE.DE", "name": "iShares S&P 500 Info Tech (Acc)" },
-    { "ticker": "IS3N.DE", "name": "iShares Core MSCI EM IMI (Acc)" },
-    { "ticker": "EUNK.DE", "name": "iShares Core MSCI Europe (Acc)" },
-    { "ticker": "EXSA.DE", "name": "iShares STOXX Europe 600 (Dist)" },
-    { "ticker": "IUSN.DE", "name": "iShares MSCI World Small Cap (Acc)" }
+    { "ticker": "VWCE.DE", "group": "World", "name": "Vanguard FTSE All-World (Acc)" },
+    { "ticker": "EUNL.DE", "group": "World", "name": "iShares Core MSCI World (Acc)" },
+    { "ticker": "IUSQ.DE", "group": "World", "name": "iShares MSCI ACWI (Acc)" },
+    { "ticker": "IUSN.DE", "group": "World", "name": "iShares MSCI World Small Cap (Acc)" },
+    { "ticker": "IS3S.DE", "group": "World", "name": "iShares MSCI World Value Factor (Acc)" },
+    { "ticker": "IS3R.DE", "group": "World", "name": "iShares MSCI World Momentum (Acc)" },
+    { "ticker": "IS3Q.DE", "group": "World", "name": "iShares MSCI World Quality (Acc)" },
+    { "ticker": "IQQ0.DE", "group": "World", "name": "iShares MSCI World Min Volatility (Acc)" },
+
+    { "ticker": "SXR8.DE", "group": "US", "name": "iShares Core S&P 500 (Acc)" },
+    { "ticker": "SXRV.DE", "group": "US", "name": "iShares Nasdaq 100 (Acc)" },
+    { "ticker": "ZPRV.DE", "group": "US", "name": "SPDR MSCI USA Small Cap Value (Acc)" },
+    { "ticker": "SPYD.DE", "group": "US", "name": "SPDR S&P US Dividend Aristocrats (Dist)" },
+
+    { "ticker": "EUNK.DE", "group": "Europe", "name": "iShares Core MSCI Europe (Acc)" },
+    { "ticker": "EXSA.DE", "group": "Europe", "name": "iShares STOXX Europe 600 (Dist)" },
+    { "ticker": "EXS1.DE", "group": "Europe", "name": "iShares Core DAX (Acc)" },
+    { "ticker": "EXSB.DE", "group": "Europe", "name": "iShares DivDAX (Dist)" },
+    { "ticker": "IUSK.DE", "group": "Europe", "name": "iShares MSCI Europe SRI (Acc)" },
+
+    { "ticker": "IS3N.DE", "group": "Emerging", "name": "iShares Core MSCI EM IMI (Acc)" },
+    { "ticker": "QDV5.DE", "group": "Emerging", "name": "iShares MSCI India (Acc)" },
+    { "ticker": "ICGA.DE", "group": "Emerging", "name": "iShares MSCI China (Acc)" },
+    { "ticker": "LCUJ.DE", "group": "Japan", "name": "Amundi Core MSCI Japan (Acc)" },
+    { "ticker": "SXRZ.DE", "group": "Japan", "name": "iShares Nikkei 225 (Acc)" },
+
+    { "ticker": "QDVE.DE", "group": "Sector", "name": "iShares S&P 500 Info Tech (Acc)" },
+    { "ticker": "XDWH.DE", "group": "Sector", "name": "Xtrackers MSCI World Health Care (Acc)" },
+    { "ticker": "XDWF.DE", "group": "Sector", "name": "Xtrackers MSCI World Financials (Acc)" },
+    { "ticker": "XDWI.DE", "group": "Sector", "name": "Xtrackers MSCI World Industrials (Acc)" },
+    { "ticker": "XDW0.DE", "group": "Sector", "name": "Xtrackers MSCI World Energy (Acc)" },
+    { "ticker": "VVSM.DE", "group": "Sector", "name": "VanEck Semiconductor (Acc)" },
+    { "ticker": "2B76.DE", "group": "Sector", "name": "iShares Automation & Robotics (Acc)" },
+    { "ticker": "IQQH.DE", "group": "Sector", "name": "iShares Global Clean Energy (Dist)" },
+    { "ticker": "DFEN.DE", "group": "Sector", "name": "VanEck Defense (Acc)" },
+    { "ticker": "EXV1.DE", "group": "Sector", "name": "iShares STOXX Europe 600 Banks (Dist)" },
+    { "ticker": "EXV6.DE", "group": "Sector", "name": "iShares STOXX Europe 600 Basic Resources" },
+
+    { "ticker": "VGWD.DE", "group": "Dividend", "name": "Vanguard FTSE All-World High Dividend (Dist)" },
+    { "ticker": "ZPRG.DE", "group": "Dividend", "name": "SPDR S&P Global Dividend Aristocrats (Dist)" },
+
+    { "ticker": "EUNA.DE", "group": "Bonds", "name": "iShares Core Global Aggregate Bond EUR-H (Acc)" },
+    { "ticker": "EUN5.DE", "group": "Bonds", "name": "iShares Core EUR Corp Bond (Dist)" },
+    { "ticker": "VGEA.DE", "group": "Bonds", "name": "Vanguard Eurozone Government Bond (Acc)" },
+    { "ticker": "XEON.DE", "group": "Cash", "name": "Xtrackers EUR Overnight Rate (Acc)" },
+
+    { "ticker": "4GLD.DE", "group": "Gold", "name": "Xetra-Gold (ETC)" }
   ]
 }

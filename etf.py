@@ -53,47 +53,68 @@ def load_watchlist(path: Path = ETFS_FILE) -> dict:
 def render_etf_table() -> str:
     watchlist = load_watchlist()
     etfs = watchlist["etfs"]
-    with ThreadPoolExecutor(max_workers=len(etfs)) as pool:
+    top = watchlist.get("show_top", 10)
+    bottom = watchlist.get("show_bottom", 3)
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
         data = list(pool.map(lambda e: fetch_month_change(e["ticker"]), etfs))
 
     rows = [{**e, **d} for e, d in zip(etfs, data)]
-    ok = sorted((r for r in rows if "error" not in r), key=lambda r: r["change"], reverse=True)
+    ranked = sorted((r for r in rows if "error" not in r), key=lambda r: r["change"], reverse=True)
     failed = [r for r in rows if "error" in r]
 
-    if not ok:
+    if not ranked:
         return "\nETF watchlist: couldn't load market data right now (are you online?)."
+
+    for n, r in enumerate(ranked, 1):
+        r["rank"] = n
+
+    # Best `top` and worst `bottom`; if the list is short, just show all of it.
+    if len(ranked) <= top + bottom:
+        best, worst = ranked, []
+    else:
+        best, worst = ranked[:top], ranked[-bottom:] if bottom else []
 
     color = _use_color()
     green, red, reset = ("\033[32m", "\033[31m", "\033[0m") if color else ("", "", "")
 
-    headers = ("#", "ETF", "Ticker", "Price", "1 month")
-    body = []
-    for n, r in enumerate(ok, 1):
+    headers = ("#", "ETF", "Type", "Ticker", "Price", "1 month")
+
+    def cells(r):
         trend = "UP" if r["change"] >= 0 else "DOWN"
-        body.append((
-            str(n),
+        return (
+            str(r["rank"]),
             r["name"],
+            r.get("group", ""),
             r["ticker"].split(".")[0],
             f"{r['price']:,.2f} {r['currency']}",
             f"{r['change']:+.2f}% {trend}",
-        ))
+        )
 
-    widths = [max(len(row[i]) for row in [headers, *body]) for i in range(5)]
+    shown = best + worst
+    body = [cells(r) for r in shown]
+    widths = [max(len(row[i]) for row in [headers, *body]) for i in range(len(headers))]
     sep = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
-    align = ("rjust", "ljust", "ljust", "rjust", "rjust")
+    align = ("rjust", "ljust", "ljust", "ljust", "rjust", "rjust")
 
-    def line(cells, paint=""):
-        parts = [getattr(c, a)(w) for c, a, w in zip(cells, align, widths)]
+    def line(cols, paint=""):
+        parts = [getattr(c, a)(w) for c, a, w in zip(cols, align, widths)]
         if paint:
             parts[-1] = f"{paint}{parts[-1]}{reset}"
         return "| " + " | ".join(parts) + " |"
 
-    out = [
-        "\nETF ideas for your investments: 1-month performance, best to worst",
-        sep,
-        line(headers),
-        sep,
-        *(line(b, green if r["change"] >= 0 else red) for b, r in zip(body, ok)),
+    def paint(r):
+        return green if r["change"] >= 0 else red
+
+    title = f"\nETF ideas for your investments: 1-month performance of {len(ranked)} popular ETFs"
+    if worst:
+        title += f"\nTop {len(best)} and bottom {len(worst)}, best to worst"
+    out = [title, sep, line(headers), sep]
+    out += [line(c, paint(r)) for c, r in zip(body[: len(best)], best)]
+    if worst:
+        out.append(line(("", "...", "", "", "", "")))
+        out += [line(c, paint(r)) for c, r in zip(body[len(best):], worst)]
+    out += [
         sep,
         f"Source: {watchlist.get('source', 'Yahoo Finance')}. Not investment advice.",
     ]

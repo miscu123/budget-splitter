@@ -63,11 +63,11 @@ Unless noted, "Savings / Investments" is split 550 : 150 between savings and inv
 
 ## ETF ideas
 
-When the income type includes investments, a second table follows the budget. It lists 10 popular UCITS ETFs, ranked by their 1-month price change from best to worst, with UP/DOWN markers. This is meant as a quick look at what is doing well or poorly; it is not investment advice.
+When the income type includes investments, a second table follows the budget. It checks a watchlist of about 40 popular UCITS ETFs (world, US, Europe, emerging markets, Japan, sectors, dividends, bonds, gold), ranks them by their 1-month price change, and shows the top 10 and bottom 3 with UP/DOWN markers. Prices and ranking are fetched fresh on every run. This is meant as a quick look at what is doing well or poorly; it is not investment advice.
 
 - Data comes from Yahoo Finance's public chart endpoint (Xetra listings, prices in EUR), so you need an internet connection. No API key is needed. If the data can't be loaded, the budget still prints.
 - XTB discontinued its public API in March 2025, so the list is a curated watchlist of widely held ETFs rather than a live XTB feed. Check the XTB app to confirm an ETF is available for your account.
-- Edit [`etfs.json`](etfs.json) to change the watchlist (Yahoo tickers, e.g. `SXR8.DE`).
+- Edit [`etfs.json`](etfs.json) to change the watchlist (Yahoo tickers, e.g. `SXR8.DE`) or how many to show (`show_top`, `show_bottom`; set `show_bottom` to `0` to hide the worst performers).
 - Add `--no-etfs` to skip the table, or run `python etf.py` to see only the ETFs.
 
 ## Customizing
