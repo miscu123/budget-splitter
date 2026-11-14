@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from pathlib import Path
@@ -56,15 +57,7 @@ def build_rows(
     """
     fixed = fixed or {}
     categories = plan["categories"]
-    parts = dict(zip((c["name"] for c in categories), split_amount(amount, categories)))
-    if fixed:
-        flexible = flexible_categories(plan, fixed)
-        pool = amount - sum(fixed.values()) - sum(
-            parts[c["name"]] for c in categories if c["name"] not in fixed and c not in flexible
-        )
-        if flexible:
-            parts.update(zip((c["name"] for c in flexible), split_amount(pool, flexible)))
-        parts.update(fixed)
+    parts, _ = allocate(amount, plan, fixed)
 
     rows = []
     for cat in categories:
@@ -87,14 +80,32 @@ def flexible_categories(plan: dict, fixed: dict) -> list[dict]:
     return marked or [c for c in plan["categories"] if c["name"] not in fixed]
 
 
-def max_fixed_total(amount: Decimal, plan: dict) -> Decimal:
-    """The most that fixed costs can add up to: the amount minus the other set categories."""
+def allocate(amount: Decimal, plan: dict, fixed: dict[str, Decimal]) -> tuple[dict, bool]:
+    """Work out each category's amount. Returns (amounts by name, squeezed).
+
+    Fixed amounts come first. Other non-flexible categories (e.g. Car fuel) keep
+    their normal share and flexible ones share what's left. If fixed costs leave
+    too little for that, flexible categories get 0 and the other non-flexible
+    ones shrink to fit; `squeezed` is then True.
+    """
     categories = plan["categories"]
-    asked = {c["name"] for c in asked_categories(plan)}
     parts = dict(zip((c["name"] for c in categories), split_amount(amount, categories)))
-    flexible = flexible_categories(plan, asked)
-    return amount - sum(parts[c["name"]] for c in categories
-                        if c["name"] not in asked and c not in flexible)
+    if not fixed:
+        return parts, False
+
+    flexible = flexible_categories(plan, fixed)
+    steady = [c for c in categories if c["name"] not in fixed and c not in flexible]
+    remaining = amount - sum(fixed.values())
+    pool = remaining - sum(parts[c["name"]] for c in steady)
+    squeezed = pool < 0
+    if squeezed:
+        parts.update((c["name"], Decimal("0.00")) for c in flexible)
+        if steady:
+            parts.update(zip((c["name"] for c in steady), split_amount(remaining, steady)))
+    elif flexible:
+        parts.update(zip((c["name"] for c in flexible), split_amount(pool, flexible)))
+    parts.update(fixed)
+    return parts, squeezed
 
 
 def asked_categories(plan: dict) -> list[dict]:
@@ -119,17 +130,17 @@ def ask_fixed_costs(
             continue
         noun = name.lower()
         while True:
-            yn = input(f"Do you pay {noun}? [Y/n]: ").strip("﻿ \t\r\n").lower()
+            yn = input(f"Do you pay for {noun}? [Y/n]: ").strip("﻿ \t\r\n").lower()
             if yn in ("", "y", "yes", "n", "no"):
                 break
             print("  Please answer y or n.")
         if yn in ("n", "no"):
             fixed[name] = Decimal(0)
             continue
-        left = max_fixed_total(amount, plan) - sum(fixed.values())
+        left = amount - sum(fixed.values())
         while True:
             text = input(
-                f"How much is your {noun}? ({currency}, Enter = {fmt_money(defaults[name])}): "
+                f"How much do you pay for {noun}? ({currency}, Enter = {fmt_money(defaults[name])}): "
             ).strip()
             try:
                 value = defaults[name] if not text else parse_amount(text, allow_zero=True)
@@ -137,8 +148,7 @@ def ask_fixed_costs(
                 print(f"  {e}, try again.")
                 continue
             if value > left:
-                print(f"  That's more than the budget can cover (at most {fmt_money(left)} {currency}"
-                      " after your other bills), try again.")
+                print(f"  That's more than what's left of your income ({fmt_money(left)} {currency}), try again.")
                 continue
             fixed[name] = value
             break
@@ -189,8 +199,14 @@ def render_table(
         if paid:
             out.append(f"Fixed costs taken off first: {', '.join(paid)} {currency}.")
         if unpaid:
-            out.append(f"Not paying: {' and '.join(unpaid)}.")
-        out.append(f"{flex} adjust to cover the difference.")
+            out.append(f"Not paying: {', '.join(unpaid)}.")
+        if allocate(amount, plan, fixed)[1]:
+            steady = [n for n, _, _ in rows
+                      if not n.startswith(" ") and n not in fixed and n not in names]
+            shrunk = f"{', '.join(steady)} reduced to fit, and n" if steady else "N"
+            out.append(f"{shrunk}othing is left for {flex}.")
+        else:
+            out.append(f"{flex} adjust to cover the difference.")
     if rates:
         out.append(describe(rates))
     else:
@@ -222,11 +238,14 @@ Usage:
   budget /help              show this help
   --no-etfs                 skip the ETF table (shown for types with investments)
 
-Monthly salary asks whether you pay rent and utilities, and how much. Those amounts
-are taken off first and the rest is split by the plan; if you don't pay one, its
-money goes to the other categories. To skip the questions, pass them as options:
-  --rent AMOUNT             e.g. --rent 1200   (0 = you don't pay rent)
+Monthly salary asks whether you pay for rent, utilities and subscriptions, and how
+much. Those amounts are taken off first and the rest is split by the plan; if you
+don't pay one, its money goes to the other categories. If they plus a minimum for
+food (300 RON) are more than the income, you get a warning.
+To skip the questions, pass them as options (0 = you don't pay it):
+  --rent AMOUNT             e.g. --rent 1200
   --utilities AMOUNT        e.g. --utilities 0
+  --subscriptions AMOUNT    e.g. --subscriptions 150
 
 Tip: type /help at the menu prompt to see the splits before choosing."""
 
@@ -360,9 +379,9 @@ def main(argv: list[str] | None = None) -> int:
                     known[cat["name"]] = parse_amount(value, allow_zero=True)
                 except ValueError as e:
                     parser.error(f"--{flag_name(cat)}: {e}")
-        if known and sum(known.values()) > max_fixed_total(amount, plan):
-            parser.error(f"fixed costs are more than the budget can cover "
-                         f"(at most {fmt_money(max_fixed_total(amount, plan))} {currency})")
+        if sum(known.values()) > amount:
+            parser.error(f"fixed costs ({fmt_money(sum(known.values()))} {currency}) "
+                         f"are more than the whole amount ({fmt_money(amount)} {currency})")
         if asked_categories(plan):
             fixed = ask_fixed_costs(amount, plan, currency, known)
         else:
@@ -371,7 +390,11 @@ def main(argv: list[str] | None = None) -> int:
         print()
         return 1
 
-    print(render_table(amount, plans[key], currency, fetch_rates(), fixed))
+    rates = fetch_rates()
+    print(render_table(amount, plans[key], currency, rates, fixed))
+    warning = affordability_warning(amount, fixed, currency, rates, config.get("min_food"))
+    if warning:
+        print(warning)
 
     if has_investments(plans[key]) and not args.no_etfs:
         from etf import render_etf_table
@@ -379,6 +402,51 @@ def main(argv: list[str] | None = None) -> int:
         print("\nLoading ETF data...", end="\r")
         print(render_etf_table())
     return 0
+
+
+def affordability_warning(
+    amount: Decimal,
+    fixed: dict[str, Decimal],
+    currency: str,
+    rates: dict | None,
+    min_food: dict | None,
+) -> str | None:
+    """Warn if the fixed costs plus a minimum for food are more than the income."""
+    bills = sum(fixed.values())
+    if not fixed or bills == 0:
+        return None
+
+    food = Decimal(0)
+    if min_food:
+        food = Decimal(str(min_food["amount"]))
+        food_cur = min_food.get("currency", currency).upper()
+        if food_cur != currency:
+            # Without exchange rates we can't convert the food minimum; check bills alone.
+            food = convert(food, food_cur, currency, rates) if rates else Decimal(0)
+    needed = bills + food
+    if amount >= needed:
+        return None
+
+    paid = [n.lower() for n, v in fixed.items() if v > 0]
+    bills_text = paid[0] if len(paid) == 1 else ", ".join(paid[:-1]) + " and " + paid[-1]
+    food_text = f" plus at least {fmt_money(food)} {currency} for food" if food else ""
+    lines = [
+        "",
+        "WARNING: your expenses are too high for this income.",
+        f"  Your {bills_text} ({fmt_money(bills)} {currency}){food_text} come to "
+        f"{fmt_money(needed)} {currency},",
+        f"  which is {fmt_money(needed - amount)} {currency} more than this income "
+        f"({fmt_money(amount)} {currency}).",
+        "  Consider:",
+        "    - cheaper housing or utilities (a smaller place, a roommate, a better energy plan)",
+        "    - cancelling or sharing subscriptions you don't really use",
+        "    - a second job or extra income (freelancing, a side gig)",
+    ]
+    if sys.stdout.isatty() and not os.environ.get("NO_COLOR"):
+        if os.name == "nt":
+            os.system("")  # turns on ANSI colour support in the Windows console
+        lines[1] = f"\033[1;31m{lines[1]}\033[0m"
+    return "\n".join(lines)
 
 
 def has_investments(plan: dict) -> bool:

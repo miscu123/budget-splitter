@@ -1,5 +1,9 @@
 {
   "default_currency": "RON",
+  "min_food": {
+    "amount": 300,
+    "currency": "RON"
+  },
   "plans": {
     "salary": {
       "label": "Monthly salary",
@@ -17,7 +21,8 @@
         },
         {
           "name": "Subscriptions",
-          "weight": 150
+          "weight": 150,
+          "ask": true
         },
         {
           "name": "Car fuel",

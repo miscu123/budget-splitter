@@ -64,27 +64,33 @@ python budget.py --list
 
 Unless noted, "Savings / Investments" is split 550 : 150 between savings and investments.
 
-## Rent and utilities
+## Rent, utilities and subscriptions
 
-For the monthly salary, the script first asks whether you pay rent and utilities, and how much:
+For the monthly salary, the script first asks whether you pay for rent, utilities and subscriptions, and how much:
 
 ```
-Do you pay rent? [Y/n]: y
-How much is your rent? (RON, Enter = 900.00): 1200
-Do you pay utilities? [Y/n]: n
+Do you pay for rent? [Y/n]: y
+How much do you pay for rent? (RON, Enter = 900.00): 1200
+Do you pay for utilities? [Y/n]: n
+Do you pay for subscriptions? [Y/n]: y
+How much do you pay for subscriptions? (RON, Enter = 150.00): 150
 ```
 
-- What you enter is taken off the top as a fixed amount, since it's usually the most important bill.
-- Subscriptions and Car fuel keep their normal share.
-- Free spendings, Wishlist and Savings / Investments adjust to cover the difference: they get more if you don't pay rent or utilities (or pay less than the plan), and less if you pay more.
+- What you enter is taken off the top as a fixed amount, since these are usually the most important bills.
+- Car fuel keeps its normal share.
+- Free spendings, Wishlist and Savings / Investments adjust to cover the difference: they get more if you don't pay a bill (or pay less than the plan), and less if you pay more.
+- If the bills leave too little, those three get 0 and Car fuel shrinks to fit. The bills can't add up to more than the whole income.
 - Answering `n`, or entering `0`, leaves the category out. Pressing Enter keeps the plan's normal amount.
-- The script won't accept a rent and utilities total that leaves nothing for the flexible categories.
 
 To skip the questions, pass the amounts as options (`0` means you don't pay it):
 
 ```bash
-python budget.py salary 3600 --rent 1200 --utilities 0
+python budget.py salary 3600 --rent 1200 --utilities 0 --subscriptions 150
 ```
+
+### Warning for expenses that are too high
+
+If rent + utilities + subscriptions + a minimum of 300 RON for food come to more than the income, the script prints a warning after the table. It says by how much the expenses are over, and suggests cheaper housing or utilities, cutting subscriptions, or a second job or extra income. The food minimum is `min_food` in [`plans.json`](plans.json), and it's converted when you budget in EUR or USD.
 
 In [`plans.json`](plans.json), `"ask": true` marks a category the script asks about (and adds a `--<name>` option for), and `"flexible": true` marks the categories that absorb the difference.
 
