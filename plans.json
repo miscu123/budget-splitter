@@ -7,11 +7,13 @@
       "categories": [
         {
           "name": "Rent",
-          "weight": 900
+          "weight": 900,
+          "ask": true
         },
         {
           "name": "Utilities",
-          "weight": 400
+          "weight": 400,
+          "ask": true
         },
         {
           "name": "Subscriptions",
@@ -23,11 +25,13 @@
         },
         {
           "name": "Free spendings",
-          "weight": 450
+          "weight": 450,
+          "flexible": true
         },
         {
           "name": "Wishlist",
-          "weight": 500
+          "weight": 500,
+          "flexible": true
         },
         {
           "name": "Savings / Investments",
@@ -41,7 +45,8 @@
               "name": "Investments",
               "weight": 150
             }
-          ]
+          ],
+          "flexible": true
         }
       ]
     },
