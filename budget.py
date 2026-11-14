@@ -228,26 +228,70 @@ def parse_amount(text: str, allow_zero: bool = False) -> Decimal:
 
 HELP_WORDS = {"/help", "help", "/h", "/?", "?"}
 
-USAGE = """\
-Usage:
-  budget                    pick an income type and currency, then enter the amount
-  budget <type> <amount>    e.g. budget salary 3600   (uses the default currency, RON)
-  budget <type> <amount> <currency>
-                            e.g. budget freelancing 500 eur   (RON, EUR or USD)
-  budget --list             show income types and how each one is split
-  budget /help              show this help
-  --no-etfs                 skip the ETF table (shown for types with investments)
+TOOL_COMMANDS = {"etfs", "rates"}
 
-Monthly salary asks whether you pay for rent, utilities and subscriptions, and how
-much. Those amounts are taken off first and the rest is split by the plan; if you
-don't pay one, its money goes to the other categories. If they plus a minimum for
-food (300 RON) are more than the income, you get a warning.
-To skip the questions, pass them as options (0 = you don't pay it):
-  --rent AMOUNT             e.g. --rent 1200
-  --utilities AMOUNT        e.g. --utilities 0
-  --subscriptions AMOUNT    e.g. --subscriptions 150
 
-Tip: type /help at the menu prompt to see the splits before choosing."""
+def build_help(config: dict) -> str:
+    """The full command reference shown by budget /help."""
+    plans = config["plans"]
+    keys = list(plans)
+    cur = config.get("default_currency", "RON").upper()
+    food = config.get("min_food")
+    food_text = f"{food['amount']} {food.get('currency', cur)}" if food else "nothing"
+    flags = []
+    for plan in plans.values():
+        for cat in asked_categories(plan):
+            if flag_name(cat) not in flags:
+                flags.append(flag_name(cat))
+
+    def row(left: str, right: str = "") -> str:
+        return f"  {left:<26}{right}".rstrip()
+
+    lines = [
+        "BUDGET SPLITTER - all commands",
+        "",
+        "COMMANDS",
+        row("budget", "Interactive: choose income type, currency and amount"),
+        row("budget <type> <amount>", f"Split an amount in {cur}, e.g. budget salary 3600"),
+        row("budget <type> <amount> <currency>"),
+        row("", "Split an amount in RON, EUR or USD, e.g. budget freelancing 500 eur"),
+        row("budget --list", "Show the income types and each one's % split"),
+        row("budget etfs", "Show only the ETF table (1-month performance)"),
+        row("budget rates", "Show today's RON / EUR / USD exchange rates"),
+        row("budget /help", "Show this help (also: help, -h, --help, /?)"),
+        "",
+        "INCOME TYPES (<type>)",
+        *(row(k, plans[k]["label"]) for k in keys),
+        "",
+        "OPTIONS (add them to a budget command)",
+        *(row(f"--{f} AMOUNT", f"Set your {f.replace('-', ' ')}, skip that question (0 = don't pay it)")
+          for f in flags),
+        row("--no-etfs", "Don't show the ETF table"),
+        row("", "e.g. budget salary 3600 --rent 1200 --utilities 0 --no-etfs"),
+        "",
+        "AT THE PROMPTS",
+        row("Income type", f"A number (1-{len(keys)}) or a name, e.g. salary"),
+        row("", "/help shows every split, then the menu again"),
+        row("Currency", f"1, 2, 3 or RON, EUR, USD (Enter = {cur})"),
+        row("Do you pay for ...?", "y or n (Enter = yes)"),
+        row("How much ...?", "The amount (Enter = the plan's usual amount)"),
+        row("Ctrl+C", "Quit"),
+        "",
+        "WHAT YOU GET",
+        row("Budget table", "Amount per category, also in the other two currencies"),
+        row("", "(official BNR rates, or ECB rates as a backup)"),
+        row("Fixed costs", "Monthly salary: rent, utilities and subscriptions come off"),
+        row("", "first; Free spendings, Wishlist and Savings take the difference"),
+        row("Warning", f"When those bills plus {food_text} for food exceed the income"),
+        row("ETF table", "For types with investments: top 10 and bottom 3 of ~40"),
+        row("", "popular ETFs by 1-month change (not investment advice)"),
+        "",
+        "SETTINGS (files in the budget-splitter folder)",
+        row("plans.json", "Income types, categories and weights, default currency and"),
+        row("", 'food minimum; "ask" and "flexible" mark the special categories'),
+        row("etfs.json", "The ETF watchlist and how many to show"),
+    ]
+    return "\n".join(lines)
 
 
 def choose_plan(plans: dict) -> str:
@@ -313,9 +357,8 @@ def list_plans(plans: dict) -> None:
     print()
 
 
-def print_help(plans: dict) -> None:
-    print(USAGE)
-    list_plans(plans)
+def print_help(config: dict) -> None:
+    print(build_help(config))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -344,7 +387,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.help or (args.type and args.type.lower() in HELP_WORDS):
-        print_help(plans)
+        print_help(config)
+        return 0
+
+    if args.type and args.type.lower() in TOOL_COMMANDS:
+        if args.type.lower() == "etfs":
+            from etf import render_etf_table
+
+            print(render_etf_table())
+        else:
+            rates = fetch_rates()
+            print(describe(rates) if rates else "Couldn't load exchange rates (are you online?).")
         return 0
 
     if args.list:

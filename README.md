@@ -39,7 +39,7 @@ Monthly salary: 3,600.00 RON  (= 672.92 EUR / 743.37 USD)
 Rates from BNR (National Bank of Romania), 2026-11-13: 1 EUR = 5.3498 RON, 1 USD = 4.8428 RON, 1 EUR = 1.1047 USD
 ```
 
-Show help: usage plus every income type with the % each category gets:
+Show the full command reference (commands, income types, options, prompts and settings files):
 
 ```bash
 python budget.py /help
@@ -49,6 +49,13 @@ python budget.py /help
 
 ```bash
 python budget.py --list
+```
+
+Show only the ETF table, or only today's exchange rates:
+
+```bash
+python budget.py etfs
+python budget.py rates
 ```
 
 ## Income types
