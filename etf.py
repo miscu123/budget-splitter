@@ -36,10 +36,12 @@ def fetch_month_change(ticker: str) -> dict:
             result = json.load(resp)["chart"]["result"][0]
         closes = [c for c in result["indicators"]["quote"][0]["close"] if c]
         first, last = closes[0], closes[-1]
+        meta = result["meta"]
         return {
             "price": last,
             "change": (last / first - 1) * 100,
-            "currency": result["meta"].get("currency", ""),
+            "currency": meta.get("currency", ""),
+            "long_name": meta.get("longName") or meta.get("shortName") or ticker,
         }
     except Exception as e:  # network, HTTP, or unexpected JSON shape
         return {"error": type(e).__name__}

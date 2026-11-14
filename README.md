@@ -45,7 +45,7 @@ Show the full command reference (commands, income types, options, prompts and se
 python budget.py /help
 ```
 
-`help`, `-h` and `--help` work too, and you can type `/help` at the interactive menu prompt. To see only the income types and their splits:
+`help`, `-h` and `--help` work too, and you can type `/help` at any prompt. To see only the income types and their splits:
 
 ```bash
 python budget.py --list
@@ -88,6 +88,7 @@ How much do you pay for subscriptions? (RON, Enter = 150.00): 150
 - Free spendings, Wishlist and Savings / Investments adjust to cover the difference: they get more if you don't pay a bill (or pay less than the plan), and less if you pay more.
 - If the bills leave too little, those three get 0 and Car fuel shrinks to fit. The bills can't add up to more than the whole income.
 - Answering `n`, or entering `0`, leaves the category out. Pressing Enter keeps the plan's normal amount.
+- Your answers are remembered. Next time you're asked `Same bills as last time? Rent 1,200.00, Utilities not paying, Subscriptions 150.00 RON [Y/n]`. Answer `n` to go through the questions again, with last time's amounts as the defaults. `budget bills` shows them, and `budget bills clear` forgets them.
 
 To skip the questions, pass the amounts as options (`0` means you don't pay it):
 
@@ -100,6 +101,58 @@ python budget.py salary 3600 --rent 1200 --utilities 0 --subscriptions 150
 If rent + utilities + subscriptions + a minimum of 300 RON for food come to more than the income, the script prints a warning after the table. It says by how much the expenses are over, and suggests cheaper housing or utilities, cutting subscriptions, or a second job or extra income. The food minimum is `min_food` in [`plans.json`](plans.json), and it's converted when you budget in EUR or USD.
 
 In [`plans.json`](plans.json), `"ask": true` marks a category the script asks about (and adds a `--<name>` option for), and `"flexible": true` marks the categories that absorb the difference.
+
+## Your data
+
+Your bills, history, goals and ETF mix are saved in a `data` folder next to the script. Git ignores that folder, so it stays on your computer and never ends up on GitHub. To keep it somewhere else, set the `BUDGET_DATA_DIR` environment variable.
+
+### History and yearly summary
+
+After each budget you're asked `Save this budget to your history?`. Saved budgets feed the yearly summary and your savings goals, so only save the real ones (or use `--save` / `--no-save` to skip the question).
+
+```bash
+python budget.py history              # this year's budgets + summary
+python budget.py history 2025         # another year (or: all)
+python budget.py history delete 4     # delete entry #4, e.g. a mistake
+python budget.py history clear        # delete everything (asks you to type 'yes')
+```
+
+The summary totals every category in RON (EUR and USD budgets are converted with that day's rate), shows each one as a % of income, and ends with a line like `This year: 41,200.00 RON income, 7,300.00 saved, 1,900.00 invested, 2,400.00 on wishlist.`
+
+To record a budget for another day, for example to backfill last month, add `--date 2026-10-10`. The history is a plain CSV file (`data/history.csv`), so you can open it in Excel.
+
+### Savings goals
+
+```bash
+python budget.py goals                # progress of every goal
+python budget.py goals add            # e.g. New laptop, 4,500 RON, from Wishlist
+python budget.py goals emergency      # emergency fund
+python budget.py goals delete 2
+```
+
+- Each goal is paid from either your Savings or your Wishlist money, in RON. Every saved budget fills the goals in order, starting from the date you added them, plus anything you'd already saved toward them.
+- Progress looks like `New laptop | 2,802.47 | 4,500.00 | [######----] 62% | about 3 months to go`. "Time left" uses your average monthly Savings or Wishlist amount over the last 3 months.
+- **Emergency fund:** the target is 3–6 months (you choose) of your essentials, meaning your saved rent, utilities and subscriptions plus the food minimum. It's always filled before your other savings goals. If you say yes to `Until it's full, also put your Investments money into Savings?`, the Investments share goes to Savings until the fund is full.
+- Goal progress is shown after every budget that has Savings or Wishlist money.
+
+### Investment plan
+
+```bash
+python budget.py invest set           # e.g. VWCE 80%, IS3N 20%
+python budget.py invest               # show the mix with today's prices
+python budget.py invest clear
+```
+
+Type tickers like `VWCE` (Xetra, prices in EUR) or full Yahoo tickers like `VWCE.DE`. The percentages must add up to 100. After that, every budget with investments shows what to buy:
+
+```
+Your investment plan for 150.00 RON:
+| ETF                            | Ticker |   % | Buy (RON) |      Price | ~ Shares |
+| Vanguard FTSE All-World (Acc)  | VWCE   | 80% |    120.00 | 171.42 EUR |   0.1308 |
+| iShares Core MSCI EM IMI (Acc) | IS3N   | 20% |     30.00 |  45.45 EUR |   0.1234 |
+```
+
+Share counts are approximate (XTB supports fractional shares). Prices come from Yahoo Finance. This isn't investment advice.
 
 ## Currencies
 
